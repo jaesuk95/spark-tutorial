@@ -79,7 +79,27 @@ if __name__ == "__main__":
 
     # b) filter
     # b-1) status_code = 400, endpoint = "/users"인 row만 필터링
-    df.filter((df.status_code == "400") & (df.endpoint == "/users"))
+    df.filter((df.status_code == "400") & (df.endpoint == "/users")).show()
     # df.where((df.status_code == "400") & (df.endpoint == "/users"))
+
+    # c) group by
+    # c-1) method, endpoint 별 latency의 최댓값, 최솟값, 평균값 확인
+    group_cols = ["method", "endpoint"]
+
+    df.groupby(group_cols) \
+        .agg(max("latency").alias("max_latency"),
+             min("latency").alias("min_latency"),
+             mean("latency").alias("mean_latency")).show()
+
+    # c-2) 분 단위의, 중복을 제거한 ip 리스트, 개수 뽑기
+    group_cols = ["hour", "minute"]
+    df.withColumn(
+        "hour", hour(date_trunc("hour", col("timestamp"))),
+    ).withColumn(
+        "minute", minute(date_trunc("minute", col("timestamp"))),
+    ).groupby(group_cols).agg(collect_set("ip").alias("ip_list"),
+                              count("ip").alias("ip_count")) \
+        .sort(group_cols).explain() # .explain() -> Physical Plan 확인.
+
 
 # https://github.com/startFromBottom/fc-spark-practices/blob/main/3_sparksql_examples/log_dataframe_ex.py
