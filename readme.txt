@@ -1,0 +1,1 @@
+https://github.com/startFromBottom/fc-spark-practices/blob/main/3_sparksql_examples/log_dataframe_ex.py
